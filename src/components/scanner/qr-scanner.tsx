@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -8,6 +8,29 @@ export function QrScanner() {
   const [scanning, setScanning] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const { toast } = useToast();
+
+  const onScanSuccess = useCallback((decodedText: string) => {
+    try {
+      const url = new URL(decodedText);
+      const productId = url.pathname.split("/").pop();
+
+      if (productId) {
+        toast({
+          title: "QR Escaneado",
+          description: `Producto ID: ${productId}`,
+        });
+      } else {
+        throw new Error("QR inválido");
+      }
+    } catch (error) {
+      console.error('Error processing QR:', error);
+      toast({
+        title: "Error",
+        description: "QR inválido",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
 
   useEffect(() => {
     let scanner: Html5QrcodeScanner | null = null;
@@ -26,34 +49,12 @@ export function QrScanner() {
 
     return () => {
       if (scanner) {
-        scanner.clear().catch(err => {
-          console.error("Error al detener el escáner:", err);
+        scanner.clear().catch(error => {
+          console.error("Error al detener el escáner:", error);
         });
       }
     };
   }, [onScanSuccess]);
-
-  function onScanSuccess(decodedText: string) {
-    try {
-      const url = new URL(decodedText);
-      const productId = url.pathname.split("/").pop();
-
-      if (productId) {
-        toast({
-          title: "QR Escaneado",
-          description: `Producto ID: ${productId}`,
-        });
-      } else {
-        throw new Error("QR inválido");
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "QR inválido",
-        variant: "destructive",
-      });
-    }
-  }
 
   function onScanFailure(err: string) {
     console.warn(`Error al escanear: ${err}`);

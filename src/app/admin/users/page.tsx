@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { 
   Table,
@@ -29,7 +29,7 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  async function loadUsers() {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -49,7 +49,11 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [toast]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   async function updateUserCoins(userId: string, amount: number) {
     try {
@@ -76,10 +80,6 @@ export default function UsersPage() {
       });
     }
   }
-
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
 
   const filteredUsers = users.filter(user => 
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||

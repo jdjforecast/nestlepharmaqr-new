@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  async function loadReportData() {
+  const loadReportData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -62,7 +62,9 @@ export default function ReportsPage() {
       const { data: topUsers, error: topUsersError } = await supabase
         .from('purchases')
         .select(`
-          user:users(email),
+          users!inner (
+            email
+          ),
           total_coins
         `)
         .order('total_coins', { ascending: false })
@@ -102,11 +104,13 @@ export default function ReportsPage() {
       
       // Tipo para topUsers
       interface UserData {
-        user: {
+        users: {
           email: string;
         };
         total_coins: number;
       }
+
+      const typedTopUsers = (topUsers as unknown) as UserData[];
 
       setReportData({
         totalUsers: stats?.[0]?.count || 0,
@@ -118,8 +122,8 @@ export default function ReportsPage() {
           name: p.product.name,
           total_purchases: parseInt(p.count)
         })) || [],
-        topUsers: topUsers?.map((u: UserData) => ({
-          email: u.user.email,
+        topUsers: typedTopUsers?.map((u) => ({
+          email: u.users.email,
           total_spent: u.total_coins
         })) || [],
         purchasesByMonth
@@ -134,7 +138,7 @@ export default function ReportsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [toast]);
 
   useEffect(() => {
     loadReportData();

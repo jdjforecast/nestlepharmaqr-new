@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { 
   Table,
@@ -17,14 +17,35 @@ import { Loader2, Search, RefreshCw } from "lucide-react";
 
 interface Purchase {
   id: string;
-  user_id: string;
-  user_email: string;
-  total_coins: number;
   created_at: string;
+  total_coins: number;
+  user_email: string;
   products: {
     id: string;
     name: string;
+    description: string;
+    image_url: string;
     coin_value: number;
+  }[];
+}
+
+interface PurchaseData {
+  id: string;
+  created_at: string;
+  total_coins: number;
+  user_id: string;
+  users: {
+    email: string;
+  };
+  purchase_products: {
+    id: string;
+    products: {
+      id: string;
+      name: string;
+      description: string;
+      image_url: string;
+      coin_value: number;
+    };
   }[];
 }
 
@@ -34,10 +55,9 @@ export default function PurchasesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  async function loadPurchases() {
+  const loadPurchases = useCallback(async () => {
     try {
       setLoading(true);
-      // Obtener compras con información de usuario y productos
       const { data, error } = await supabase
         .from('purchases')
         .select(`
@@ -65,30 +85,9 @@ export default function PurchasesPage() {
         throw error;
       }
 
-      // Definir tipo para los datos
-      interface PurchaseData {
-        id: string;
-        created_at: string;
-        total_coins: number;
-        user_id: string;
-        users: {
-          email: string;
-        };
-        purchase_products: {
-          id: string;
-          products: {
-            id: string;
-            name: string;
-            description: string;
-            image_url: string;
-            coin_value: number;
-          };
-        }[];
-      }
-
-      // Transformar y establecer los datos con tipo apropiado
+      const typedData = data as unknown as PurchaseData[];
       setPurchases(
-        (data as PurchaseData[])?.map((purchase) => ({
+        typedData?.map((purchase) => ({
           id: purchase.id,
           created_at: purchase.created_at,
           total_coins: purchase.total_coins,
@@ -106,7 +105,7 @@ export default function PurchasesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [toast]);
 
   useEffect(() => {
     loadPurchases();

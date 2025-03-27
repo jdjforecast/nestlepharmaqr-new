@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,32 @@ export default function QRCodesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  async function loadProducts() {
+  async function regenerateQR(productId: string) {
+    try {
+      // Aquí iría la lógica real para regenerar el QR usando el productId
+      const { error } = await supabase
+        .from('products')
+        .update({ qr_code_url: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${productId}` })
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      toast({
+        title: "QR Regenerado",
+        description: "El código QR se ha regenerado correctamente",
+      });
+      await loadProducts(); // Recargar productos para mostrar el nuevo QR
+    } catch (error) {
+      console.error('Error regenerating QR:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo regenerar el código QR",
+        variant: "destructive",
+      });
+    }
+  }
+
+  const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -42,26 +67,11 @@ export default function QRCodesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [toast]);
 
-  async function regenerateQR(productId: string) {
-    try {
-      console.log(`Regenerando QR para producto con ID: ${productId}`);
-      // Aquí iría la lógica real para regenerar el QR usando el productId
-      toast({
-        title: "QR Regenerado",
-        description: "El código QR se ha regenerado correctamente",
-      });
-      await loadProducts(); // Recargar productos para mostrar el nuevo QR
-    } catch (error) {
-      console.error('Error regenerating QR:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo regenerar el código QR",
-        variant: "destructive",
-      });
-    }
-  }
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   function downloadQR(qrUrl: string, productName: string) {
     // Crear un enlace temporal para descargar la imagen
@@ -72,10 +82,6 @@ export default function QRCodesPage() {
     link.click();
     document.body.removeChild(link);
   }
-
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Search } from "lucide-react";
@@ -23,20 +23,18 @@ export function ProductsAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
-
-  async function loadProducts() {
+  const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("products")
         .select("*")
         .order("name", { ascending: true });
         
+      if (error) throw error;
       setProducts(data || []);
-    } catch (err) {
+    } catch (error) {
+      console.error('Error loading products:', error);
       toast({
         title: "Error",
         description: "No se pudieron cargar los productos",
@@ -45,7 +43,11 @@ export function ProductsAdmin() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [toast]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   async function addProduct(formData: FormData) {
     try {
