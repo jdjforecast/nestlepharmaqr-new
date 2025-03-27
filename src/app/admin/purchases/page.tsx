@@ -41,31 +41,61 @@ export default function PurchasesPage() {
       const { data, error } = await supabase
         .from('purchases')
         .select(`
-          *,
-          user:users(email),
-          products:purchase_products(
-            product:products(id, name, coin_value)
+          id,
+          created_at,
+          total_coins,
+          user_id,
+          users (
+            email
+          ),
+          purchase_products (
+            id,
+            products (
+              id,
+              name,
+              description,
+              image_url,
+              coin_value
+            )
           )
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
-      // Transformar los datos para que coincidan con nuestra interfaz
-      const formattedPurchases: Purchase[] = (data || []).map(purchase => ({
-        id: purchase.id,
-        user_id: purchase.user_id,
-        user_email: purchase.user?.email || 'Usuario eliminado',
-        total_coins: purchase.total_coins,
-        created_at: purchase.created_at,
-        products: purchase.products.map((item: any) => ({
-          id: item.product.id,
-          name: item.product.name,
-          coin_value: item.product.coin_value
-        }))
-      }));
+      // Definir tipo para los datos
+      interface PurchaseData {
+        id: string;
+        created_at: string;
+        total_coins: number;
+        user_id: string;
+        users: {
+          email: string;
+        };
+        purchase_products: {
+          id: string;
+          products: {
+            id: string;
+            name: string;
+            description: string;
+            image_url: string;
+            coin_value: number;
+          };
+        }[];
+      }
 
-      setPurchases(formattedPurchases);
+      // Transformar y establecer los datos con tipo apropiado
+      setPurchases(
+        (data as PurchaseData[])?.map((purchase) => ({
+          id: purchase.id,
+          created_at: purchase.created_at,
+          total_coins: purchase.total_coins,
+          user_email: purchase.users?.email || 'Usuario desconocido',
+          products: purchase.purchase_products?.map((pp) => pp.products) || []
+        })) || []
+      );
     } catch (error) {
       console.error('Error loading purchases:', error);
       toast({
@@ -80,7 +110,7 @@ export default function PurchasesPage() {
 
   useEffect(() => {
     loadPurchases();
-  }, []);
+  }, [loadPurchases]);
 
   const filteredPurchases = purchases.filter(purchase => 
     purchase.user_email.toLowerCase().includes(searchTerm.toLowerCase()) ||

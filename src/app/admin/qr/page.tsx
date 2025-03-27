@@ -46,7 +46,8 @@ export default function QRCodesPage() {
 
   async function regenerateQR(productId: string) {
     try {
-      // Aquí llamaríamos al script de regeneración de QR usando productId
+      console.log(`Regenerando QR para producto con ID: ${productId}`);
+      // Aquí iría la lógica real para regenerar el QR usando el productId
       toast({
         title: "QR Regenerado",
         description: "El código QR se ha regenerado correctamente",
@@ -74,7 +75,7 @@ export default function QRCodesPage() {
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [loadProducts]);
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())

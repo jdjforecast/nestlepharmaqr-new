@@ -138,7 +138,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     loadReportData();
-  }, []);
+  }, [loadReportData]);
 
   if (loading) {
     return (

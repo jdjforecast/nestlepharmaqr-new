@@ -10,23 +10,28 @@ export function QrScanner() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!scanning) {
-      scannerRef.current = new Html5QrcodeScanner(
+    let scanner: Html5QrcodeScanner | null = null;
+
+    const startScanner = () => {
+      scanner = new Html5QrcodeScanner(
         "reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        /* verbose= */ false
+        { fps: 10, qrbox: 250 },
+        false
       );
 
-      scannerRef.current.render(onScanSuccess, onScanFailure);
-      setScanning(true);
-    }
+      scanner.render(onScanSuccess, onScanFailure);
+    };
+
+    startScanner();
 
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch(console.error);
+      if (scanner) {
+        scanner.clear().catch(err => {
+          console.error("Error al detener el escáner:", err);
+        });
       }
     };
-  }, [scanning]);
+  }, [onScanSuccess]);
 
   function onScanSuccess(decodedText: string) {
     try {
@@ -50,8 +55,8 @@ export function QrScanner() {
     }
   }
 
-  function onScanFailure(error: string) {
-    console.warn(`Fallo al escanear QR: ${error}`);
+  function onScanFailure(err: string) {
+    console.warn(`Error al escanear: ${err}`);
   }
 
   return (
