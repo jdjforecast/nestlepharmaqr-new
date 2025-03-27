@@ -1,39 +1,41 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Navbar } from "@/components/layout/navbar";
+import { ClerkProvider } from "@clerk/nextjs";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Nestle Pharma QR",
-  description: "Sistema de gestión de QR para Nestle Pharma",
+  title: "Nestlé QR Experience",
+  description: "Plataforma de escaneo y redención de productos Nestlé",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <ClerkProvider>
-      <html lang="es">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          {children}
-          <Toaster />
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="es" suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen bg-background antialiased`}>
+        <ClerkProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <Navbar />
+            <main className="container mx-auto px-4 py-8">
+              {children}
+            </main>
+            <Toaster />
+          </ThemeProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
