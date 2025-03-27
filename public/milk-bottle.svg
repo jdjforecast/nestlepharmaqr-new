@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cuello de la botella -->
+  <path d="M10 2H14V5C14 5.55228 13.5523 6 13 6H11C10.4477 6 10 5.55228 10 5V2Z" fill="#90A4AE"/>
+  
+  <!-- Cuerpo de la botella -->
+  <path d="M8 7C8 6.44772 8.44772 6 9 6H15C15.5523 6 16 6.44772 16 7V8C16 8.55228 15.5523 9 15 9H9C8.44772 9 8 8.55228 8 8V7Z" fill="#90A4AE"/>
+  
+  <!-- Base de la botella -->
+  <path d="M7 9C6.44772 9 6 9.44772 6 10V20C6 21.1046 6.89543 22 8 22H16C17.1046 22 18 21.1046 18 20V10C18 9.44772 17.5523 9 17 9H7Z" fill="#CFD8DC"/>
+  
+  <!-- Leche -->
+  <path d="M8 11C7.44772 11 7 11.4477 7 12V19C7 19.5523 7.44772 20 8 20H16C16.5523 20 17 19.5523 17 19V12C17 11.4477 16.5523 11 16 11H8Z" fill="white"/>
+</svg> 

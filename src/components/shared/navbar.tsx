@@ -1,54 +1,65 @@
+"use client";
+
 import Link from "next/link";
-import Image from "next/image";
-import { AuthStatus } from "./auth-status";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useCart } from "@/hooks/use-cart";
+import { ShoppingCart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/shared/logo";
 
 /**
  * Barra de navegación principal
  */
 export function Navbar() {
+  const { isAdmin } = usePermissions();
+  const { items } = useCart();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
-            <Image 
-              src="/next.svg" // Reemplazar con el logo de Nestlé cuando esté disponible
-              alt="Nestlé Logo" 
-              width={100} 
-              height={40}
-              className="dark:invert" 
-            />
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 hidden md:flex">
+          <Link href="/" className="mr-6 flex items-center space-x-2">
+            <Logo />
           </Link>
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            <Link
+              href="/productos"
+              className="transition-colors hover:text-foreground/80"
+            >
+              Productos
+            </Link>
+            <Link
+              href="/historial"
+              className="transition-colors hover:text-foreground/80"
+            >
+              Historial
+            </Link>
+            <Link
+              href="/perfil"
+              className="transition-colors hover:text-foreground/80"
+            >
+              Perfil
+            </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="transition-colors hover:text-foreground/80"
+              >
+                Admin
+              </Link>
+            )}
+          </nav>
         </div>
-        
-        <nav className="hidden md:flex items-center gap-6">
-          <Link 
-            href="/" 
-            className="text-sm font-medium transition-colors hover:text-primary"
-          >
-            Inicio
+        <Button variant="outline" size="icon" asChild className="ml-auto">
+          <Link href="/carrito" className="relative">
+            <ShoppingCart className="h-4 w-4" />
+            {items.length > 0 && (
+              <span className="absolute -right-2 -top-2 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
+                {items.length}
+              </span>
+            )}
           </Link>
-          <Link 
-            href="/productos" 
-            className="text-sm font-medium transition-colors hover:text-primary"
-          >
-            Productos
-          </Link>
-          <Link 
-            href="/escaner" 
-            className="text-sm font-medium transition-colors hover:text-primary"
-          >
-            Escanear QR
-          </Link>
-          <Link 
-            href="/carrito" 
-            className="text-sm font-medium transition-colors hover:text-primary"
-          >
-            Carrito
-          </Link>
-        </nav>
-        
-        <AuthStatus />
+        </Button>
       </div>
     </header>
   );

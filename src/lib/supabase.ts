@@ -1,14 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("Missing Supabase environment variables");
+}
 
 /**
  * Cliente de Supabase tipado
  * Usar este cliente para todas las operaciones con la base de datos
  */
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
 /**
  * Bucket para almacenar imágenes y códigos QR
@@ -67,7 +71,7 @@ export async function uploadProductImage(file: File) {
   const fileName = `${Math.random()}.${fileExt}`;
   const filePath = `${fileName}`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('products')
     .upload(filePath, file);
 
@@ -85,7 +89,7 @@ export async function uploadQRCode(file: File) {
   const fileName = `${Math.random()}.${fileExt}`;
   const filePath = `${fileName}`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('qr-codes')
     .upload(filePath, file);
 
@@ -102,7 +106,7 @@ export async function uploadProfileImage(file: File, userId: string) {
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}.${fileExt}`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('profiles')
     .upload(fileName, file, {
       upsert: true // Sobrescribir si existe

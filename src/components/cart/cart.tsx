@@ -2,8 +2,7 @@
 
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * Componente Cart: Muestra los items en el carrito y permite confirmar o eliminar selecciones

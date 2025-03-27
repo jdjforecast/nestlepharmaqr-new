@@ -1,60 +1,53 @@
 "use client";
 
-import { useProducts } from "@/hooks/use-products";
-import Image from "next/image";
-import { Loader2 } from "lucide-react";
+import { Product } from "@/types/products";
+import { FloatingBubble } from "@/components/products/floating-bubble";
 
-export function ProductGrid() {
-  const { products, loading, error } = useProducts();
+interface ProductGridProps {
+  products: Product[];
+}
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center text-red-500">
-        <p>Error al cargar los productos: {error}</p>
-      </div>
-    );
-  }
-
-  if (!products?.length) {
-    return (
-      <div className="text-center text-gray-500">
-        <p>No hay productos disponibles</p>
-      </div>
-    );
-  }
+export function ProductGrid({ products }: ProductGridProps) {
+  // Función para determinar el tamaño de la burbuja basado en el índice y el viewport
+  const getBubbleSize = (index: number) => {
+    // En móviles, todas las burbujas son del mismo tamaño para mejor visualización
+    if (typeof window !== 'undefined' && window.innerWidth < 640) {
+      return "md";
+    }
+    // En tablets y desktop, variamos los tamaños
+    return index % 3 === 0 ? "lg" : index % 3 === 1 ? "md" : "sm";
+  };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {products.map((product) => (
-        <div key={product.id} className="border rounded-lg p-4 flex flex-col">
-          {product.image_url && (
-            <div className="relative h-48 mb-4">
-              <Image
-                src={product.image_url}
-                alt={product.name}
-                fill
-                className="object-cover rounded-md"
-              />
-            </div>
-          )}
-          <h3 className="text-lg font-semibold">{product.name}</h3>
-          <p className="text-gray-600 text-sm flex-grow">{product.description}</p>
-          <div className="mt-4">
-            <span className="font-medium">{product.coin_value} monedas</span>
+    <div className="relative min-h-[400px] px-4 sm:px-8 py-8">
+      {/* Fondo con gradiente y blur */}
+      <div className="absolute inset-0 bg-gradient-radial from-bubble-light/20 via-transparent to-transparent" />
+      
+      {/* Grid de productos */}
+      <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 sm:gap-x-8 gap-y-12 sm:gap-y-16">
+        {products.map((product, index) => (
+          <div key={product.id} className="flex justify-center">
+            <FloatingBubble
+              imageUrl={product.image_url || "/placeholder-product.png"}
+              productName={product.name}
+              href={`/productos/${product.id}`}
+              delay={index * 200} // Delay escalonado para animación
+              size={getBubbleSize(index)}
+              // Ajustamos el tooltip para móviles
+              className="mobile-tooltip"
+            />
           </div>
-          <div className="mt-2 text-sm text-gray-500">
-            <p>Escanea el código QR del producto para agregarlo al carrito</p>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
+
+      {/* Estilos específicos para móviles */}
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          .mobile-tooltip [class*="tooltip"] {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 } 

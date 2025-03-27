@@ -33,12 +33,19 @@ export async function getCartItem(userId: string): Promise<CartItem | null> {
 
   if (!data) return null;
 
+  // Convertir la estructura a CartItem
+  const product = data.products as unknown as Product;
+  
   return {
     id: data.id,
     user_id: data.user_id,
     product_id: data.product_id,
     created_at: new Date(data.created_at),
-    product: data.products as Product
+    product: product,
+    // Propiedades requeridas por la interfaz CartItem
+    name: product.name,
+    description: product.description,
+    coin_value: product.coin_value
   };
 }
 
@@ -98,12 +105,19 @@ export async function addToCart(userId: string, productId: string): Promise<Cart
     return null;
   }
 
+  // Convertir la estructura a CartItem
+  const productData = data.products as unknown as Product;
+  
   return {
     id: data.id,
     user_id: data.user_id,
     product_id: data.product_id,
     created_at: new Date(data.created_at),
-    product: data.products as Product
+    product: productData,
+    // Propiedades requeridas por la interfaz CartItem
+    name: productData.name,
+    description: productData.description,
+    coin_value: productData.coin_value
   };
 }
 

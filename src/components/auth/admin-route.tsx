@@ -1,64 +1,41 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 interface AdminRouteProps {
   children: React.ReactNode;
 }
 
-const ADMIN_EMAIL = "ncastilo@outlook.com"; // Email del administrador
-
 export function AdminRoute({ children }: AdminRouteProps) {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isAdmin, loading } = usePermissions();
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isLoaded) return;
-
-    if (!isSignedIn) {
-      toast({
-        title: "Acceso denegado",
-        description: "Debes iniciar sesión para acceder a esta página",
-        variant: "destructive",
-      });
-      router.push("/sign-in");
-      return;
-    }
-
-    // Verificar si el usuario es administrador
-    const userEmail = user?.primaryEmailAddress?.emailAddress;
-    if (userEmail !== ADMIN_EMAIL) {
+    if (!loading && !isAdmin) {
       toast({
         title: "Acceso denegado",
         description: "No tienes permisos para acceder a esta página",
         variant: "destructive",
       });
       router.push("/");
-      return;
     }
-  }, [isLoaded, isSignedIn, user, router]);
+  }, [isAdmin, loading, router, toast]);
 
-  // Mostrar información de carga
-  if (!isLoaded) {
-    return <div>Cargando...</div>;
-  }
-
-  if (!isSignedIn) {
-    return <div>No has iniciado sesión</div>;
-  }
-
-  if (user?.primaryEmailAddress?.emailAddress !== ADMIN_EMAIL) {
+  if (loading) {
     return (
-      <div className="p-4 bg-red-100 text-red-700">
-        <p>No tienes permisos de administrador</p>
-        <p>Tu email: {user?.primaryEmailAddress?.emailAddress}</p>
-        <p>Email requerido: {ADMIN_EMAIL}</p>
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
+  }
+
+  if (!isAdmin) {
+    return null;
   }
 
   return <>{children}</>;

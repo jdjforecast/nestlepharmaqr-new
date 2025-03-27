@@ -1,74 +1,59 @@
+"use client";
+
 import Link from "next/link";
+import Image from "next/image";
 
 /**
  * Pie de página principal
  */
 export function Footer() {
-  const currentYear = new Date().getFullYear();
-
   return (
-    <footer className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container py-6 md:py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="flex flex-col gap-2">
-            <h3 className="text-lg font-semibold">Nestlé QR Experience</h3>
-            <p className="text-sm text-muted-foreground">
-              Plataforma de experiencia QR para productos Nestlé.
-            </p>
-          </div>
+    <footer className="w-full border-t bg-background">
+      <div className="container flex flex-col items-center py-8 space-y-4">
+        {/* Enlaces */}
+        <nav className="flex flex-wrap justify-center gap-4 text-sm">
+          <Link 
+            href="/acerca" 
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Acerca de
+          </Link>
+          <Link 
+            href="/terminos" 
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Términos y Condiciones
+          </Link>
+          <Link 
+            href="/privacidad" 
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Política de Privacidad
+          </Link>
+        </nav>
+
+        {/* Créditos */}
+        <div className="flex flex-col items-center space-y-2 text-sm text-muted-foreground">
+          <p className="text-center">
+            Una experiencia{" "}
+            <Link 
+              href="https://mipartner.com.co/" 
+              target="_blank"
+              className="font-semibold hover:text-foreground transition-colors"
+            >
+              Mipartner
+            </Link>
+          </p>
           
-          <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold">Enlaces</h3>
-            <div className="flex flex-col gap-2">
-              <Link 
-                href="/" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Inicio
-              </Link>
-              <Link 
-                href="/productos" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Productos
-              </Link>
-              <Link 
-                href="/escaner" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Escanear QR
-              </Link>
-            </div>
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold">Legal</h3>
-            <div className="flex flex-col gap-2">
-              <Link 
-                href="/privacidad" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Política de privacidad
-              </Link>
-              <Link 
-                href="/terminos" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Términos y condiciones
-              </Link>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-8 pt-6 border-t flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-muted-foreground">
-              © {currentYear} Nestlé. Todos los derechos reservados.
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Powered by MIpartner & Korova MB</span>
+          <div className="flex items-center space-x-2">
+            <p>Developed by Jaime Forero C KOROVA MB</p>
+            <Image
+              src="/milk-bottle.svg"
+              alt="Korova MB Logo"
+              width={16}
+              height={16}
+              className="inline-block"
+            />
           </div>
         </div>
       </div>

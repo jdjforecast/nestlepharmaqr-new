@@ -1,38 +1,47 @@
-'use client';
+"use client";
 
-import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { Permission, ROLE_PERMISSIONS, UserRole } from "@/types/user";
+import { useUser } from "@clerk/nextjs";
+import { supabase } from "@/lib/supabase";
 
-/**
- * Hook para manejar los permisos del usuario
- * @returns Objeto con funciones para verificar permisos y rol del usuario
- */
-export function usePermissions() {
+interface UsePermissionsResult {
+  isAdmin: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+export function usePermissions(): UsePermissionsResult {
   const { user } = useUser();
-  const [userRole, setUserRole] = useState<UserRole>(UserRole.USER);
-  
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    // Obtener el rol del usuario de los metadatos de Clerk
-    const role = user?.publicMetadata?.role as UserRole;
-    if (role && Object.values(UserRole).includes(role)) {
-      setUserRole(role);
+    async function checkPermissions() {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error: dbError } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (dbError) throw dbError;
+
+        setIsAdmin(data?.role === "admin");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al verificar permisos");
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [user]);
 
-  /**
-   * Verifica si el usuario tiene un permiso específico
-   * @param permission - Permiso a verificar
-   * @returns true si el usuario tiene el permiso
-   */
-  const hasPermission = (permission: Permission): boolean => {
-    return ROLE_PERMISSIONS[userRole].includes(permission);
-  };
+    checkPermissions();
+  }, [user?.id]);
 
-  return {
-    hasPermission,
-    userRole,
-    isAdmin: userRole === UserRole.ADMIN,
-    isUser: userRole === UserRole.USER
-  };
+  return { isAdmin, loading, error };
 } 

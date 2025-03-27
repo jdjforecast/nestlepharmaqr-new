@@ -21,7 +21,6 @@ export default function PurchaseHistoryPage() {
   const { user } = useUser();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -29,7 +28,7 @@ export default function PurchaseHistoryPage() {
       if (!user) return;
 
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("purchases")
           .select(`
             id,
@@ -44,10 +43,9 @@ export default function PurchaseHistoryPage() {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
-        if (error) throw error;
         setPurchases(data || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Error al cargar el historial");
+        console.error('Error loading purchase history:', err);
         toast({
           title: "Error",
           description: "No se pudo cargar el historial de compras",

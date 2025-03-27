@@ -1,228 +1,145 @@
 "use client"
 
-import { useState } from "react";
-import { useProducts } from "@/hooks/use-products";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Plus, Pencil, Trash } from "lucide-react";
-import { uploadProductImage } from "@/lib/supabase";
+import Image from "next/image";
 
-interface ProductFormData {
+interface Product {
+  id: string;
   name: string;
   description: string;
+  image_url: string | null;
   coin_value: number;
-  image?: File;
+  created_at: string;
 }
 
 export function ProductsAdmin() {
-  const { products, loading, error, createProduct, updateProduct, deleteProduct } = useProducts();
-  const [isEditing, setIsEditing] = useState<string | null>(null);
-  const [formData, setFormData] = useState<ProductFormData>({
-    name: "",
-    description: "",
-    coin_value: 0,
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
+  async function loadProducts() {
     try {
-      let imageUrl = undefined;
-      if (formData.image) {
-        imageUrl = await uploadProductImage(formData.image);
-      }
-
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        coin_value: formData.coin_value,
-        ...(imageUrl && { image_url: imageUrl }),
-      };
-
-      if (isEditing) {
-        await updateProduct(isEditing, productData);
-        toast({
-          title: "Producto actualizado",
-          description: "El producto se ha actualizado correctamente",
-        });
-      } else {
-        await createProduct(productData);
-        toast({
-          title: "Producto creado",
-          description: "El producto se ha creado correctamente",
-        });
-      }
-
-      setFormData({
-        name: "",
-        description: "",
-        coin_value: 0,
-      });
-      setIsEditing(null);
-    } catch (error) {
+      setLoading(true);
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .order("name", { ascending: true });
+        
+      setProducts(data || []);
+    } catch (err) {
       toast({
         title: "Error",
-        description: "Hubo un error al procesar el producto",
+        description: "No se pudieron cargar los productos",
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
-  };
+  }
 
-  const handleEdit = (product: typeof products[0]) => {
-    setIsEditing(product.id);
-    setFormData({
-      name: product.name,
-      description: product.description || "",
-      coin_value: product.coin_value,
-    });
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) return;
-
+  async function deleteProduct(id: string) {
     try {
-      await deleteProduct(id);
+      setLoading(true);
+      const { } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", id);
+
+      await loadProducts();
       toast({
         title: "Producto eliminado",
-        description: "El producto se ha eliminado correctamente",
+        description: "El producto ha sido eliminado con éxito",
       });
-    } catch (error) {
+    } catch (err) {
       toast({
         title: "Error",
-        description: "Hubo un error al eliminar el producto",
+        description: "No se pudo eliminar el producto",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-  };
+  }
 
-  if (error) {
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
     return (
-      <div className="text-red-500">
-        Error al cargar los productos: {error}
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <form onSubmit={handleSubmit} className="space-y-4 p-6 border rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">
-          {isEditing ? "Editar Producto" : "Nuevo Producto"}
-        </h2>
-        
-        <div className="space-y-2">
-          <Label htmlFor="name">Nombre</Label>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <div className="relative w-full sm:w-96">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
+            type="text"
+            placeholder="Buscar productos..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
           />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Descripción</Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="coin_value">Valor en Monedas</Label>
-          <Input
-            id="coin_value"
-            type="number"
-            value={formData.coin_value}
-            onChange={(e) => setFormData({ ...formData, coin_value: parseInt(e.target.value) })}
-            required
-            min={0}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="image">Imagen</Label>
-          <Input
-            id="image"
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                setFormData({ ...formData, image: file });
-              }
-            }}
-          />
-        </div>
-
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isEditing ? "Actualizando..." : "Creando..."}
-            </>
-          ) : (
-            <>
-              <Plus className="mr-2 h-4 w-4" />
-              {isEditing ? "Actualizar Producto" : "Crear Producto"}
-            </>
-          )}
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Nuevo Producto
         </Button>
-      </form>
-
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Lista de Productos</h2>
-        {loading ? (
-          <div className="flex justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="p-4 border rounded-lg space-y-2"
-              >
-                {product.image_url && (
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="w-full h-48 object-cover rounded-md"
-                  />
-                )}
-                <h3 className="font-semibold">{product.name}</h3>
-                <p className="text-sm text-gray-600">{product.description}</p>
-                <p className="font-medium">{product.coin_value} monedas</p>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEdit(product)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDelete(product.id)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredProducts.map((product) => (
+          <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="relative w-10 h-10 rounded overflow-hidden bg-gray-100">
+              <Image
+                src={product.image_url || "/product-placeholder.png"}
+                alt={product.name}
+                width={40}
+                height={40}
+                className="object-cover"
+              />
+            </div>
+            <div className="p-4">
+              <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
+              <p className="text-gray-600 text-sm mb-4">{product.description}</p>
+              <div className="flex justify-between items-center">
+                <span className="text-primary font-medium">
+                  {product.coin_value} monedas
+                </span>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => deleteProduct(product.id)}
+                >
+                  Eliminar
+                </Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredProducts.length === 0 && (
+        <div className="text-center text-gray-500 py-8">
+          No se encontraron productos
+        </div>
+      )}
     </div>
   );
 } 

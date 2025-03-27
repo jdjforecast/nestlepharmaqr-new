@@ -23,6 +23,10 @@ export interface DatabaseCartItem {
 
 export interface CartItem {
   id: string;
+  user_id: string;
+  product_id: string;
+  created_at: Date;
+  product: Product;
   name: string;
   description: string;
   coin_value: number;

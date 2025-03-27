@@ -12,79 +12,76 @@ export interface Database {
       users: {
         Row: {
           id: string
-          clerk_id: string
-          name: string
-          company: string
-          profile_image_url: string | null
-          coins: number
+          role: string
           created_at: string
+          updated_at: string
         }
         Insert: {
-          id?: string
-          clerk_id: string
-          name: string
-          company: string
-          profile_image_url?: string | null
-          coins?: number
+          id: string
+          role?: string
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
-          clerk_id?: string
-          name?: string
-          company?: string
-          profile_image_url?: string | null
-          coins?: number
+          role?: string
           created_at?: string
+          updated_at?: string
         }
       }
       products: {
         Row: {
           id: string
-          created_at: string
           name: string
           description: string | null
           image_url: string | null
-          coin_value: number
           qr_code_url: string | null
+          coin_value: number
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          id?: string
-          created_at?: string
+          id: string
           name: string
           description?: string | null
           image_url?: string | null
-          coin_value: number
           qr_code_url?: string | null
+          coin_value: number
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
-          created_at?: string
           name?: string
           description?: string | null
           image_url?: string | null
-          coin_value?: number
           qr_code_url?: string | null
+          coin_value?: number
+          created_at?: string
+          updated_at?: string
         }
       }
-      cart_items: {
+      purchases: {
         Row: {
           id: string
-          created_at: string
           user_id: string
           product_id: string
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          id?: string
-          created_at?: string
+          id: string
           user_id: string
           product_id: string
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
-          created_at?: string
           user_id?: string
           product_id?: string
+          created_at?: string
+          updated_at?: string
         }
       }
     }
